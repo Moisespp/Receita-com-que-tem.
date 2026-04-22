@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, ">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF6B35">
+    <title>Receita com o que tem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+* {
+    max-width: 100%;
+}
+
+input {
+    font-size: 16px;
+}
+
+button {
+    touch-action: manipulation;
+}
+
+        /* ===== VARIÁVEIS DE TEMA ===== */
+        :root {
+            --primary: #FF6B35;
+            --secondary: #EF476F;
+            --bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #2D3436;
+            --gray: #636E72;
+            --success: #06D6A0;
+            --border: #F1F2F6;
+            --tag-bg: #FFE8E0;
+            --prep-bg: #F9F9F9;
+            --menu-bg: #ffffff;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        [data-theme="dark"] {
+            --bg: #1A1A2E;
+            --card-bg: #16213E;
+            --text: #E0E0E0;
+            --gray: #A0A0B0;
+            --border: #2A2A4A;
+            --tag-bg: #3A2A20;
+            --prep-bg: #1E2A3A;
+            --menu-bg: #16213E;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 10px; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+
+        /* ===== MENU LATERAL ===== */
+        #side-menu { position: fixed; top: 0; right: -280px; width: 85vw; max-width: 280px; height: 100vh; background: var(--menu-bg); box-shadow: -5px 0 20px rgba(0,0,0,0.15); z-index: 2000; transition: 0.4s ease; padding: 25px 12px; overflow-y: auto; box-sizing: border-box; }
+        #side-menu.open { right: 0; }
+        #menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1999; backdrop-filter: blur(2px); }
+        .menu-item { padding: 15px 0; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text); font-size: 0.95rem; transition: color 0.2s; }
+        .menu-item:hover { color: var(--primary); }
+        .menu-item i { width: 20px; text-align: center; color: var(--primary); }
+        .menu-version { position: absolute; bottom: 20px; font-size: 0.7rem; color: var(--gray); }
+
+        /* ===== MODAL ===== */
+        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); color: var(--text); width: 100%; max-width: 420px; border-radius: 25px; padding: 30px; position: relative; animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #modal-body { font-size: 0.9rem; color: var(--gray); line-height: 1.7; max-height: 60vh; overflow-y: auto; margin: 15px 0; }
+        .btn-modal-close { width: 100%; padding: 12px; border: none; border-radius: 12px; background: var(--primary); color: white; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: opacity 0.2s; }
+        .btn-modal-close:hover { opacity: 0.85; }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 3000; transition: opacity 0.8s ease; pointer-events: none; }
+        #splash-screen i { font-size: 5rem; margin-bottom: 20px; animation: bounce 2s infinite; }
+        #splash-screen h1 { font-size: 1.6rem; font-weight: 700; }
+        #splash-screen p { font-size: 0.9rem; opacity: 0.85; margin-top: 8px; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
+
+        /* ===== APP CONTAINER ===== */
+        .app-container { width: 100%; max-width: 100%; background: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 30px var(--shadow); overflow: hidden; opacity: 0; transition: opacity 1s ease, background 0.3s; position: relative; box-sizing: border-box; }
+
+        /* ===== HEADER ===== */
+        header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 30px 15px 20px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; position: relative; }
+        #btn-open-menu { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.2); border: none; color: white; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; font-size: 1.2rem; transition: background 0.2s; }
+        #btn-open-menu:hover { background: rgba(255,255,255,0.35); }
+        header h1 { font-size: 1.2rem; font-weight: 700; margin-top: 6px; }
+        header p { font-size: 0.78rem; opacity: 0.9; margin-top: 2px; }
+        #badge-ingredientes { display: inline-block; background: rgba(255,255,255,0.25); border-radius: 20px; padding: 3px 12px; font-size: 0.7rem; margin-top: 8px; font-weight: 600; }
+
+        /* ===== FILTRO DE CATEGORIA ===== */
+        .filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding: 12px 15px 5px; scrollbar-width: none; }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .filter-btn { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 2px solid var(--border); background: transparent; color: var(--gray); font-size: 0.7rem; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; transition: all 0.2s; }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* ===== CONTEÚDO PRINCIPAL ===== */
+        .content { padding: 12px 12px 5px; box-sizing: border-box; }
+        .input-group { display: flex; gap: 8px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        input[type="text"] { flex: 1; padding: 10px 12px; border: 2px solid var(--border); border-radius: 10px; outline: none; font-size: 14px; background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; transition: border 0.2s, background 0.3s; box-sizing: border-box; min-width: 0; }
+        input[type="text"]:focus { border-color: var(--primary); }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 0 14px; border-radius: 10px; cursor: pointer; font-size: 0.95rem; transition: opacity 0.2s; flex-shrink: 0; }
+        .btn-add:hover { opacity: 0.85; }
+        .ingredients-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; min-height: 10px; width: 100%; box-sizing: border-box; }
+        .tag { background: var(--tag-bg); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .tag i { cursor: pointer; color: var(--secondary); font-size: 0.75rem; }
+
+        /* ===== BUSCA POR NOME ===== */
+        .search-wrap { position: relative; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+        .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 0.85rem; pointer-events: none; }
+        #busca-nome { padding-left: 36px !important; width: 100%; box-sizing: border-box; }
+
+        /* ===== BOTÕES DE AÇÃO ===== */
+        .actions { display: grid; gap: 8px; margin-bottom: 12px; }
+        .btn-main { background: var(--success); color: white; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; font-family: 'Poppins', sans-serif; transition: opacity 0.2s, transform 0.1s; }
+        .btn-main:hover { opacity: 0.9; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-secondary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-alt { background: var(--border); color: var(--gray); padding: 8px; border: none; border-radius: 10px; font-size: 0.75rem; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+        .btn-alt:hover { background: #e0e0e0; }
+        [data-theme="dark"] .btn-alt:hover { background: #2a2a4a; }
+
+        /* ===== LOADING ===== */
+        #loading { display: none; text-align: center; padding: 30px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== ÁREA DE RESULTADOS ===== */
+        #results-area { padding: 0 12px 10px; box-sizing: border-box; width: 100%; }
+        .section-title { font-size: 0.85rem; margin: 14px 0 8px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .recipe-card { background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; position: relative; cursor: pointer; transition: box-shadow 0.2s, border-color 0.2s; }
+        .recipe-card:hover { box-shadow: 0 4px 16px var(--shadow); border-color: var(--primary); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .card-header h3 { color: var(--primary); font-size: 0.9rem; line-height: 1.3; font-weight: 700; }
+        .card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .btn-fav { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; transition: color 0.2s, transform 0.2s; padding: 0; }
+        .btn-fav.favoritado { color: var(--secondary); }
+        .btn-fav:hover { transform: scale(1.2); }
+        .chevron-icon { color: #ccc; transition: transform 0.3s; font-size: 0.9rem; }
+        .recipe-card.open .chevron-icon { transform: rotate(180deg); }
+        .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+        .meta-item { font-size: 0.7rem; color: var(--gray); display: flex; align-items: center; gap: 3px; }
+        .badge-categoria { font-size: 0.7rem; padding: 2px 10px; border-radius: 20px; font-weight: 600; }
+        .badge-dificuldade { font-size: 0.7rem; padding: 2px 10px; border-radius: 20px; font-weight: 600; }
+        .dif-facil { background: #D4EDDA; color: #155724; }
+        .dif-medio { background: #FFF3CD; color: #856404; }
+        .dif-dificil { background: #F8D7DA; color: #721C24; }
+        .faltam-label { color: var(--secondary); font-size: 0.75rem; font-weight: 600; margin-top: 4px; }
+
+        .recipe-prep { background: var(--prep-bg); padding: 12px; border-radius: 12px; margin-top: 10px; font-size: 0.8rem; display: none; border-left: 4px solid var(--primary); }
+        .recipe-card.open .recipe-prep { display: block; }
+        .prep-section-title { font-weight: 700; font-size: 0.7rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+        .ing-check-list { list-style: none; margin-bottom: 10px; padding: 0; }
+        .ing-check-list li { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--gray); font-size: 0.75rem; }
+        .ing-check-list i { font-size: 0.7rem; color: var(--success); flex-shrink: 0; }
+        .step-item { margin-bottom: 8px; display: flex; gap: 8px; align-items: flex-start; }
+        .step-number { background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; font-weight: 700; }
+        .step-text { color: var(--text); font-size: 0.75rem; line-height: 1.4; padding-top: 1px; }
+        .dica-box { background: #FFF8E1; border-left: 4px solid #FFC107; border-radius: 8px; padding: 8px 10px; margin-top: 8px; font-size: 0.75rem; color: #7B5800; }
+        [data-theme="dark"] .dica-box { background: #2A2000; color: #FFD54F; }
+
+        /* ===== MENSAGEM VAZIA ===== */
+        .empty-msg { text-align: center; color: var(--gray); padding: 30px 20px; font-size: 0.9rem; }
+        .empty-msg i { font-size: 2.5rem; color: var(--border); display: block; margin-bottom: 10px; }
+
+        /* ===== DOAÇÃO ===== */
+        .donation-area { background: #E8F5E9; border: 2px dashed #06D6A0; border-radius: 16px; padding: 12px; margin: 12px 12px 15px; text-align: center; cursor: pointer; text-decoration: none; display: block; transition: transform 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+        [data-theme="dark"] .donation-area { background: #0D2B1E; }
+        .donation-area:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6,214,160,0.2); }
+        .donation-area i { color: #06D6A0; font-size: 1.2rem; margin-bottom: 3px; display: block; }
+        .donation-area p { font-size: 0.75rem; color: var(--text); font-weight: 600; }
+
+        /* ===== FAVORITOS NO MENU ===== */
+        .fav-list-item { padding: 8px 0; font-size: 0.82rem; color: var(--gray); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+        .fav-list-item i { color: var(--secondary); }
+        .fav-empty { font-size: 0.82rem; color: var(--gray); padding: 8px 0; }
+
+        /* ===== TOGGLE MODO ESCURO ===== */
+        .toggle-dark { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .toggle-dark span { display: flex; align-items: center; gap: 12px; color: var(--text); font-size: 0.95rem; }
+        .toggle-dark span i { color: var(--primary); width: 20px; text-align: center; }
+        .switch { position: relative; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 24px; transition: 0.3s; }
+        .slider:before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .app-container { border-radius: 16px; max-width: 100%; }
+            header { padding: 25px 12px 15px; border-radius: 16px; }
+            header h1 { font-size: 1.1rem; }
+            header p { font-size: 0.75rem; }
+            .content { padding: 10px 12px 3px; }
+            #results-area { padding: 0 12px 8px; }
+            .recipe-card { padding: 12px; margin-bottom: 10px; border-radius: 14px; }
+        }
+        @media (max-width: 360px) {
+            header h1 { font-size: 1rem; }
+            .filter-btn { padding: 4px 10px; font-size: 0.65rem; }
+            .card-header h3 { font-size: 0.85rem; }
+            .recipe-prep { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <i class="fas fa-utensils"></i>
+        <h1>Receita com o que tem</h1>
+        <p>O seu guia de cozinha rápida</p>
+    </div>
+
+    <!-- OVERLAY DO MENU -->
+    <div id="menu-overlay"></div>
+
+    <!-- MENU LATERAL -->
+    <div id="side-menu">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h2 style="color:var(--primary); font-size:1.2rem;">Opções</h2>
+            <i class="fas fa-times" id="btn-close-menu" style="cursor:pointer; font-size:1.4rem; color:var(--gray);"></i>
+        </div>
+
+        <!-- Toggle Modo Escuro -->
+        <div class="toggle-dark">
+            <span><i class="fas fa-moon"></i> Modo escuro</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-dark-mode">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="menu-item" id="menu-favoritos"><i class="fas fa-heart"></i> Minhas favoritas</div>
+        <div class="menu-item" id="menu-sobre"><i class="fas fa-info-circle"></i> Quem somos</div>
+        <div class="menu-item" id="menu-termos"><i class="fas fa-file-contract"></i> Termos de serviço</div>
+        <div class="menu-item" id="menu-dicas"><i class="fas fa-lightbulb"></i> Dicas de cozinha</div>
+
+        <div class="menu-version">Versão 2.0.0</div>
+    </div>
+
+    <!-- MODAL GENÉRICO -->
+    <div id="custom-modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="color:var(--primary); font-size:1.2rem;"></h2>
+            <div id="modal-body"></div>
+            <button class="btn-modal-close" id="close-modal">Entendi</button>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div class="app-container" id="main-app">
+        <header>
+            <button id="btn-open-menu"><i class="fas fa-bars"></i></button>
+            <i class="fas fa-utensils" style="font-size:2.5rem;"></i>
+            <h1>Receita com o que tem</h1>
+            <p>Cozinhe com o que você já tem em casa</p>
+            <div id="badge-ingredientes">0 ingredientes adicionados</div>
+        </header>
+
+        <!-- FILTROS DE CATEGORIA -->
+        <div class="filter-scroll" id="filtros-categoria">
+            <button class="filter-btn active" data-cat="todos">Todos</button>
+            <button class="filter-btn" data-cat="cafe">Café</button>
+            <button class="filter-btn" data-cat="almoco">Almoço</button>
+            <button class="filter-btn" data-cat="lanche">Lanche</button>
+            <button class="filter-btn" data-cat="jantar">Jantar</button>
+            <button class="filter-btn" data-cat="sobremesa">Sobremesa</button>
+        </div>
+
+        <div class="content">
+            <!-- Campo de adicionar ingrediente -->
+            <div class="input-group">
+                <input type="text" id="ingrediente-input" placeholder="Ex: ovo, arroz, frango...">
+                <button id="btn-add" class="btn-add"><i class="fas fa-plus"></i></button>
+            </div>
+            <div id="lista-tags" class="ingredients-list"></div>
+
+            <!-- Busca por nome de receita -->
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="busca-nome" placeholder="Buscar receita pelo nome...">
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="actions">
+                <button id="btn-buscar" class="btn-main"><i class="fas fa-search"></i> Ver o que posso fazer</button>
+                <div class="btn-secondary-row">
+                    <button id="btn-fome" class="btn-alt">Tô com fome!</button>
+                    <button id="btn-limpar" class="btn-alt">Limpar tudo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="font-size:0.85rem; color:var(--gray);">Procurando receitas...</p>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results-area"></div>
+
+        <!-- Área de doação -->
+        <a href="https://mpago.la/1MaZusR" target="_blank" class="donation-area">
+            <i class="fas fa-heart"></i>
+            <p>Gostou? Incentive com R$ 1,50</p>
+        </a>
+    </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ===== ELEMENTOS =====
+    const menu = document.getElementById('side-menu');
+    const overlay = document.getElementById('menu-overlay');
+    const splash = document.getElementById('splash-screen');
+    const mainApp = document.getElementById('main-app');
+    const input = document.getElementById('ingrediente-input');
+    const buscaNome = document.getElementById('busca-nome');
+    const modal = document.getElementById('custom-modal');
+    const areaResultados = document.getElementById('results-area');
+    const loading = document.getElementById('loading');
+    const badge = document.getElementById('badge-ingredientes');
+
+    // ===== ESTADO =====
+    let meusIngredientes = JSON.parse(localStorage.getItem('ingredientes')) || [];
+    let favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
+    let categoriaAtiva = 'todos';
+    const basicos = ["sal", "oleo", "óleo", "agua", "água", "açucar", "açúcar", "manteiga", "alho", "cebola", "azeite", "pimenta", "vinagre"];
+
+    // ===== BANCO DE RECEITAS (40 RECEITAS) =====
+    const receitas = [
+        // --- CAFÉ DA MANHÃ ---
+        {
+            nome: "Omelete Simples", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["ovo"], tempo: "5 min",
+            passos: ["Quebre 2 ovos numa tigela e bata com um garfo.", "Tempere com sal e pimenta a gosto.", "Aqueça uma frigideira com um fio de óleo.", "Despeje os ovos batidos e deixe firmar em fogo médio.", "Dobre ao meio e sirva quente."],
+            dica: "Para um omelete mais fofinho, adicione uma colher de sopa de água ou leite antes de bater."
+        },
+        {
+            nome: "Mingau de Aveia", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["aveia", "leite"], tempo: "8 min",
+            passos: ["Misture 4 colheres de aveia em 1 xícara de leite.", "Leve ao fogo médio mexendo sempre.", "Adoce com açúcar ou mel.", "Mexa até engrossar e sirva."],
+            dica: "Adicione uma banana amassada para um mingau mais cremoso e nutritivo."
+        },
+        {
+            nome: "Tapioca com Queijo", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["tapioca", "queijo"], tempo: "5 min",
+            passos: ["Peneire a goma de tapioca diretamente numa frigideira antiaderente fria.", "Leve ao fogo médio e espere firmar.", "Coloque o queijo fatiado sobre metade da tapioca.", "Dobre ao meio e sirva."],
+            dica: "Não precisa de óleo! A tapioca gruda sozinha quando aquece."
+        },
+        {
+            nome: "Banana com Aveia", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["banana", "aveia"], tempo: "2 min",
+            passos: ["Descasque e amasse bem a banana com um garfo.", "Polvilhe a aveia por cima.", "Misture e sirva como mingau frio ou leve ao micro-ondas por 1 min."],
+            dica: "Com 2 ingredientes você tem um café da manhã nutritivo e rápido!"
+        },
+        {
+            nome: "Pão com Ovo Mexido", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["pao", "ovo"], tempo: "8 min",
+            passos: ["Bata 2 ovos com sal e pimenta.", "Mexa na frigideira com manteiga em fogo baixo.", "Sirva sobre o pão torrado."],
+            dica: "Mexa devagar e em fogo baixo para um ovo mexido cremoso."
+        },
+
+        // --- ALMOÇO ---
+        {
+            nome: "Arroz com Ovo", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["arroz", "ovo"], tempo: "10 min",
+            passos: ["Aqueça o arroz já cozido numa frigideira.", "Frite o ovo separadamente com um fio de óleo.", "Coloque o ovo sobre o arroz.", "Tempere com sal e sirva."],
+            dica: "Adicione cebolinha picada para dar mais sabor."
+        },
+        {
+            nome: "Macarrão Alho e Óleo", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["macarrao", "alho"], tempo: "15 min",
+            passos: ["Cozinhe o macarrão em água com sal até ficar al dente.", "Escorra e reserve.", "Frite o alho picado no azeite até dourar.", "Misture a massa no refogado e sirva."],
+            dica: "Use bastante alho e azeite de qualidade para um resultado incrível."
+        },
+        {
+            nome: "Frango Grelhado", categoria: "almoco", dificuldade: "medio",
+            ingredientes: ["frango"], tempo: "20 min",
+            passos: ["Tempere o frango com sal, limão e alho.", "Deixe marinar por 10 minutos.", "Grelhe em frigideira bem quente.", "Dore dos dois lados por 5 a 7 minutos cada.", "Sirva com arroz ou salada."],
+            dica: "Cubra a frigideira nos primeiros minutos para o frango cozinhar por dentro."
+        },
+        {
+            nome: "Sopa de Macarrão", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["macarrao", "agua"], tempo: "15 min",
+            passos: ["Ferva 1 litro de água com sal e tempero a gosto.", "Adicione o macarrão e cozinhe até ficar macio.", "Ajuste o sal e sirva quente."],
+            dica: "Adicione um cubo de caldo de galinha para dar mais sabor à sopa."
+        },
+        {
+            nome: "Arroz com Feijão", categoria: "almoco", dificuldade: "medio",
+            ingredientes: ["arroz", "feijao"], tempo: "40 min",
+            passos: ["Cozinhe o feijão na pressão por 20 minutos.", "Refogue alho e cebola no óleo.", "Adicione o feijão cozido e tempere.", "Sirva com arroz branco."],
+            dica: "O segredo do feijão saboroso é um bom refogado de alho e cebola."
+        },
+        {
+            nome: "Batata Rústica", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["batata"], tempo: "20 min",
+            passos: ["Lave e corte as batatas em gomos sem descascar.", "Tempere com sal, azeite e alho.", "Frite em óleo bem quente até dourar.", "Escorra e sirva."],
+            dica: "Pré-cozinhe as batatas por 5 minutos para ficarem crocantes por fora e macias por dentro."
+        },
+        {
+            nome: "Batata Cozida com Manteiga", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["batata", "agua"], tempo: "25 min",
+            passos: ["Descasque e corte as batatas em cubos.", "Cozinhe em água com sal até ficarem macias.", "Escorra e sirva com manteiga e salsinha."],
+            dica: "Espete um garfo para testar o ponto: deve entrar sem resistência."
+        },
+        {
+            nome: "Farofa de Ovo", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["farinha", "ovo"], tempo: "10 min",
+            passos: ["Derreta a manteiga numa frigideira.", "Frite o ovo mexido.", "Adicione a farinha de mandioca aos poucos.", "Mexa até dourar e tempere com sal."],
+            dica: "Adicione bacon ou linguiça para uma farofa mais completa."
+        },
+        {
+            nome: "Salada de Tomate", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["tomate", "cebola"], tempo: "5 min",
+            passos: ["Lave e fatie os tomates.", "Corte a cebola em rodelas finas.", "Tempere com azeite, sal e orégano.", "Sirva gelada."],
+            dica: "Deixe a cebola de molho em água gelada por 10 minutos para tirar o ardor."
+        },
+        {
+            nome: "Cuscuz Nordestino", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["milho"], tempo: "15 min",
+            passos: ["Hidrate o flocão de milho com água e sal.", "Deixe descansar 5 minutos.", "Leve à cuscuzeira por 10 minutos.", "Sirva com manteiga."],
+            dica: "A proporção certa é 1 xícara de flocão para 1/2 xícara de água."
+        },
+
+        // --- LANCHE ---
+        {
+            nome: "Misto Quente", categoria: "lanche", dificuldade: "facil",
+            ingredientes: ["pao", "queijo"], tempo: "5 min",
+            passos: ["Monte o pão com fatias de queijo.", "Dore na chapa ou frigideira com manteiga.", "Pressione levemente.", "Sirva quando o queijo derreter."],
+            dica: "Adicione uma fatia de presunto para um X-queijo completo!"
+        },
+        {
+            nome: "Sanduíche de Atum", categoria: "lanche", dificuldade: "facil",
+            ingredientes: ["pao", "atum"], tempo: "5 min",
+            passos: ["Escorra o atum da lata.", "Misture com azeite, sal e limão.", "Passe no pão e sirva."],
+            dica: "Adicione maionese e milho para um sanduíche mais cremoso."
+        },
+        {
+            nome: "Hot Dog Simples", categoria: "lanche", dificuldade: "facil",
+            ingredientes: ["pao", "salsicha"], tempo: "10 min",
+            passos: ["Ferva as salsichas por 5 minutos.", "Aqueça o pão na chapa.", "Monte com a salsicha e temperos a gosto."],
+            dica: "Faça um molho de tomate rápido para acompanhar!"
+        },
+        {
+            nome: "Pipoca Caseira", categoria: "lanche", dificuldade: "facil",
+            ingredientes: ["milho"], tempo: "5 min",
+            passos: ["Aqueça 2 colheres de óleo numa panela.", "Adicione o milho de pipoca.", "Tampe e agite a panela até parar de estourar.", "Retire do fogo e adicione sal."],
+            dica: "Adicione manteiga derretida e queijo parmesão para uma pipoca gourmet!"
+        },
+        {
+            nome: "Torrada com Ovo", categoria: "lanche", dificuldade: "facil",
+            ingredientes: ["pao", "ovo"], tempo: "8 min",
+            passos: ["Torre o pão na frigideira com manteiga.", "Frite o ovo do lado ensolarado.", "Monte a torrada com o ovo por cima.", "Tempere com sal e pimenta."],
+            dica: "Adicione abacate amassado para um brunch completo."
+        },
+
+        // --- JANTAR ---
+        {
+            nome: "Macarrão com Atum", categoria: "jantar", dificuldade: "facil",
+            ingredientes: ["macarrao", "atum"], tempo: "15 min",
+            passos: ["Cozinhe o macarrão em água com sal.", "Escorra e reserve.", "Misture o atum escorrido com azeite e alho.", "Misture tudo e sirva quente."],
+            dica: "Adicione tomate picado e azeitonas para mais sabor."
+        },
+        {
+            nome: "Arroz com Frango Desfiado", categoria: "jantar", dificuldade: "medio",
+            ingredientes: ["arroz", "frango"], tempo: "30 min",
+            passos: ["Cozinhe o frango temperado em água.", "Desfie o frango com dois garfos.", "Refogue com alho, cebola e temperos.", "Misture ao arroz cozido e sirva."],
+            dica: "Use a água do cozimento do frango para cozinhar o arroz — fica muito mais saboroso!"
+        },
+        {
+            nome: "Ovo Cozido", categoria: "jantar", dificuldade: "facil",
+            ingredientes: ["ovo", "agua"], tempo: "12 min",
+            passos: ["Coloque os ovos em água fria.", "Leve ao fogo e conte 10 minutos após ferver.", "Transfira para água gelada.", "Descasque e sirva."],
+            dica: "Água gelada logo após cozinhar facilita descascar e evita a casca verde."
+        },
+        {
+            nome: "Frango com Batata", categoria: "jantar", dificuldade: "medio",
+            ingredientes: ["frango", "batata"], tempo: "35 min",
+            passos: ["Tempere o frango com sal, alho e limão.", "Doure numa panela com óleo.", "Adicione as batatas cortadas em cubos.", "Cubra com água e cozinhe até as batatas ficarem macias."],
+            dica: "Adicione cenoura para deixar o prato mais colorido e nutritivo."
+        },
+        {
+            nome: "Macarrão com Queijo", categoria: "jantar", dificuldade: "facil",
+            ingredientes: ["macarrao", "queijo"], tempo: "15 min",
+            passos: ["Cozinhe o macarrão em água com sal.", "Escorra e volte à panela.", "Adicione o queijo ralado e manteiga.", "Misture até derreter e sirva."],
+            dica: "Use queijo prato ou mussarela para um macarrão bem cremoso."
+        },
+
+        // --- SOBREMESA ---
+        {
+            nome: "Brigadeiro Simples", categoria: "sobremesa", dificuldade: "facil",
+            ingredientes: ["leite condensado", "chocolate"], tempo: "15 min",
+            passos: ["Misture o leite condensado com o chocolate em pó.", "Leve ao fogo médio mexendo sempre.", "Cozinhe até desgrudar do fundo.", "Deixe esfriar e enrole."],
+            dica: "O ponto certo é quando você arrasta a colher e o fundo da panela aparece por 3 segundos."
+        },
+        {
+            nome: "Banana com Açúcar", categoria: "sobremesa", dificuldade: "facil",
+            ingredientes: ["banana", "açucar"], tempo: "5 min",
+            passos: ["Descasque e corte a banana ao meio no sentido do comprimento.", "Polvilhe açúcar por cima.", "Leve ao forno ou micro-ondas por 2 minutos.", "Sirva com canela."],
+            dica: "Adicione uma bola de sorvete de creme para uma sobremesa especial!"
+        },
+        {
+            nome: "Bolo de Caneca", categoria: "sobremesa", dificuldade: "facil",
+            ingredientes: ["farinha", "ovo", "leite"], tempo: "5 min",
+            passos: ["Numa caneca grande, misture 4 colheres de farinha, 4 de açúcar, 2 de cacau.", "Adicione 1 ovo, 3 colheres de leite e 3 de óleo.", "Misture bem com um garfo.", "Leve ao micro-ondas por 2 a 3 minutos.", "Espere 1 minuto antes de comer."],
+            dica: "Coloque um pedaço de chocolate no centro antes de levar ao micro-ondas para um recheio derretido!"
+        },
+        {
+            nome: "Vitamina de Banana", categoria: "sobremesa", dificuldade: "facil",
+            ingredientes: ["banana", "leite"], tempo: "3 min",
+            passos: ["Coloque a banana picada no liquidificador.", "Adicione 1 copo de leite gelado.", "Bata por 1 minuto.", "Adoce a gosto e sirva."],
+            dica: "Adicione aveia para uma vitamina mais nutritiva e encorpada."
+        },
+        {
+            nome: "Mousse de Chocolate Rápido", categoria: "sobremesa", dificuldade: "medio",
+            ingredientes: ["chocolate", "creme de leite"], tempo: "15 min",
+            passos: ["Derreta o chocolate em banho-maria.", "Misture o creme de leite ao chocolate derretido.", "Bata claras em neve e incorpore à mistura.", "Leve à geladeira por 2 horas."],
+            dica: "Use chocolate meio amargo para um mousse mais sofisticado."
+        },
+        {
+            nome: "Pudim de Leite Condensado", categoria: "sobremesa", dificuldade: "dificil",
+            ingredientes: ["leite condensado", "leite", "ovo"], tempo: "60 min",
+            passos: ["Faça a calda: derreta 1 xícara de açúcar até dourar e despeje na forma.", "Bata no liquidificador: 1 lata de leite condensado, a mesma medida de leite e 3 ovos.", "Despeje na forma caramelizada.", "Asse em banho-maria a 180°C por 40 minutos.", "Deixe esfriar e desenforme."],
+            dica: "Cubra com papel alumínio durante o cozimento para evitar que o pudim resseque."
+        },
+
+        // --- EXTRAS ---
+        {
+            nome: "Arroz Branco", categoria: "almoco", dificuldade: "facil",
+            ingredientes: ["arroz", "agua"], tempo: "20 min",
+            passos: ["Refogue alho e cebola no óleo.", "Adicione o arroz lavado e mexa.", "Coloque água quente (2 dedos acima do arroz).", "Tampe e cozinhe em fogo baixo por 15 minutos."],
+            dica: "Nunca levante a tampa enquanto o arroz cozinha!"
+        },
+        {
+            nome: "Feijão Temperado", categoria: "almoco", dificuldade: "medio",
+            ingredientes: ["feijao", "agua"], tempo: "40 min",
+            passos: ["Cozinhe o feijão na pressão por 20 minutos.", "Refogue alho e cebola.", "Adicione o feijão e caldo.", "Tempere com sal e louro."],
+            dica: "Deixe o feijão de molho por 8 horas para cozinhar mais rápido."
+        },
+        {
+            nome: "Omelete de Queijo", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["ovo", "queijo"], tempo: "8 min",
+            passos: ["Bata 2 ovos com sal.", "Despeje na frigideira quente com manteiga.", "Coloque o queijo ralado sobre metade.", "Dobre e sirva."],
+            dica: "Adicione tomate e orégano para um omelete caprese."
+        },
+        {
+            nome: "Caldo de Frango", categoria: "jantar", dificuldade: "medio",
+            ingredientes: ["frango", "agua"], tempo: "30 min",
+            passos: ["Cozinhe o frango com sal, alho e cebola.", "Retire o frango e desfie.", "Volte o frango ao caldo.", "Adicione macarrão ou arroz se quiser."],
+            dica: "Ótimo para dias frios ou quando estiver gripado!"
+        },
+        {
+            nome: "Tapioca com Banana", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["tapioca", "banana"], tempo: "7 min",
+            passos: ["Peneire a goma na frigideira quente.", "Espere firmar.", "Coloque rodelas de banana.", "Dobre e sirva com mel se quiser."],
+            dica: "Adicione canela para um sabor especial."
+        },
+        {
+            nome: "Arroz de Forno", categoria: "jantar", dificuldade: "medio",
+            ingredientes: ["arroz", "queijo", "ovo"], tempo: "30 min",
+            passos: ["Misture arroz cozido com ovos batidos.", "Adicione queijo ralado e temperos.", "Coloque numa forma untada.", "Asse a 200°C por 20 minutos até dourar."],
+            dica: "Adicione milho e ervilha para um arroz de forno mais colorido."
+        },
+        {
+            nome: "Panqueca Simples", categoria: "cafe", dificuldade: "facil",
+            ingredientes: ["farinha", "ovo", "leite"], tempo: "15 min",
+            passos: ["Misture 1 xícara de farinha, 1 ovo e 1 xícara de leite.", "Bata até ficar homogêneo.", "Despeje conchas na frigideira untada.", "Doure dos dois lados."],
+            dica: "Sirva com mel, geleia ou Nutella para um café especial."
+        },
+        {
+            nome: "Macarrão com Molho de Tomate", categoria: "jantar", dificuldade: "facil",
+            ingredientes: ["macarrao", "tomate"], tempo: "20 min",
+            passos: ["Cozinhe o macarrão em água com sal.", "Bata os tomates no liquidificador.", "Refogue alho, adicione o molho e tempere.", "Misture ao macarrão escorrido."],
+            dica: "Adicione uma pitada de açúcar ao molho para tirar a acidez do tomate."
+        }
+    ];
+
+    // ===== SPLASH SCREEN =====
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            splash.style.pointerEvents = 'none';
+            mainApp.style.opacity = '1';
+        }, 1500);
+    });
+    
+    // Fallback se o load não disparar
+    setTimeout(() => {
+        if (mainApp.style.opacity !== '1') {
+            splash.style.opacity = '0';
+            splash.style.pointerEvents = 'none';
+            mainApp.style.opacity = '1';
+        }
+    }, 3000);
+
+    // ===== MODO ESCURO =====
+    const darkToggle = document.getElementById('toggle-dark-mode');
+    const savedTheme = localStorage.getItem('tema') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    darkToggle.checked = savedTheme === 'dark';
+
+    darkToggle.addEventListener('change', () => {
+        const tema = darkToggle.checked ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', tema);
+        localStorage.setItem('tema', tema);
+    });
+
+    // ===== MODAL =====
+    const abrirModal = (titulo, conteudo) => {
+        document.getElementById('modal-title').innerText = titulo;
+        document.getElementById('modal-body').innerHTML = conteudo;
+        modal.style.display = 'flex';
+        fecharMenu();
+    };
+
+    document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+    // ===== MENU LATERAL =====
+    const fecharMenu = () => { menu.classList.remove('open'); overlay.style.display = 'none'; };
+    document.getElementById('btn-open-menu').onclick = () => { menu.classList.add('open'); overlay.style.display = 'block'; };
+    document.getElementById('btn-close-menu').onclick = overlay.onclick = fecharMenu;
+
+    document.getElementById('menu-sobre').onclick = () => abrirModal(
+        "Quem Somos",
+        `<p>O <b>Receita com o que tem</b> nasceu para combater o desperdício alimentar, ajudando você a cozinhar de forma criativa com o que já tem em casa.</p>
+        <br><p>Sem complicação, sem ingredientes difíceis. Só praticidade e sabor!</p>`
+    );
+
+    document.getElementById('menu-termos').onclick = () => abrirModal(
+        "Termos de Serviço",
+        `<p>As receitas são sugestões simples para uso doméstico. O uso de fogo, utensílios e equipamentos é de inteira responsabilidade do usuário.</p>
+        <br><p>As receitas não substituem orientação nutricional profissional.</p>`
+    );
+
+    document.getElementById('menu-dicas').onclick = () => abrirModal(
+        "Dicas de Cozinha",
+        `<p><b>🔪 Corte eficiente:</b> Mantenha as facas afiadas para cortes mais seguros e precisos.</p><br>
+        <p><b>🧂 Sal na hora certa:</b> Carnes ficam mais suculentas quando temperadas pouco antes de grelhar.</p><br>
+        <p><b>🍳 Frigideira quente:</b> Sempre preaqueça a frigideira antes de adicionar o alimento.</p><br>
+        <p><b>🥚 Ovos frescos:</b> Coloque o ovo em água — se afundar, está fresco; se boiar, descarte.</p><br>
+        <p><b>🌿 Ervas frescas:</b> Adicione no final do cozimento para preservar o aroma.</p>`
+    );
+
+    document.getElementById('menu-favoritos').onclick = () => {
+        if (favoritos.length === 0) {
+            abrirModal("Minhas Favoritas", `<p class="fav-empty">Você ainda não favoritou nenhuma receita. Clique no ❤️ de qualquer receita para salvar!</p>`);
+        } else {
+            const lista = favoritos.map(nome => `<div class="fav-list-item"><i class="fas fa-heart"></i> ${nome}</div>`).join('');
+            abrirModal("Minhas Favoritas", lista);
+        }
+    };
+
+    // ===== INGREDIENTES =====
+    function normalizarTexto(texto) {
+        return texto.trim().toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/ção/g, "cao").replace(/ões/g, "oes");
+    }
+
+    function atualizarBadge() {
+        const n = meusIngredientes.length;
+        badge.textContent = n === 0 ? '0 ingredientes adicionados' : n === 1 ? '1 ingrediente adicionado' : `${n} ingredientes adicionados`;
+    }
+
+    function renderizarTags() {
+        document.getElementById('lista-tags').innerHTML = meusIngredientes.map((ing, i) => `
+            <div class="tag">${ing} <i class="fas fa-times" data-index="${i}"></i></div>
+        `).join('');
+        localStorage.setItem('ingredientes', JSON.stringify(meusIngredientes));
+        atualizarBadge();
+    }
+
+    function adicionarIngrediente() {
+        let v = normalizarTexto(input.value);
+        if (!v) return;
+        // Remover plural simples
+        const palavrasNaoPluralizaveis = ["arroz", "feijao", "feijão"];
+if (v.endsWith('s') && v.length > 3 && !palavrasNaoPluralizaveis.includes(v)) {
+    v = v.slice(0, -1);
+}
+        if (!meusIngredientes.includes(v)) {
+            meusIngredientes.push(v);
+            renderizarTags();
+        }
+        input.value = "";
+        input.focus();
+    }
+
+    document.getElementById('btn-add').onclick = adicionarIngrediente;
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') adicionarIngrediente(); });
+
+    // Remover tag ao clicar no X
+    document.getElementById('lista-tags').addEventListener('click', (e) => {
+        if (e.target.dataset.index !== undefined) {
+            meusIngredientes.splice(Number(e.target.dataset.index), 1);
+            renderizarTags();
+        }
+    });
+
+    // ===== FILTROS DE CATEGORIA =====
+    document.getElementById('filtros-categoria').addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        categoriaAtiva = btn.dataset.cat;
+    });
+
+    // ===== GERAÇÃO DE CARDS =====
+    function gerarCard(r, completo, faltantes) {
+        const isFav = favoritos.includes(r.nome);
+        const difClass = `dif-${r.dificuldade}`;
+        const difLabel = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' }[r.dificuldade];
+        const catLabel = { cafe: 'Café', almoco: 'Almoço', lanche: 'Lanche', jantar: 'Jantar', sobremesa: 'Sobremesa' }[r.categoria] || '';
+
+        return `
+        <div class="recipe-card" data-nome="${r.nome}">
+            <div class="card-header">
+                <h3>${r.nome}</h3>
+                <div class="card-actions">
+                    <button class="btn-fav ${isFav ? 'favoritado' : ''}" data-fav="${r.nome}" title="Favoritar">
+                        <i class="${isFav ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                    <i class="fas fa-chevron-down chevron-icon"></i>
+                </div>
+            </div>
+            <div class="card-meta">
+                <span class="meta-item"><i class="far fa-clock"></i> ${r.tempo}</span>
+                <span class="badge-dificuldade ${difClass}">${difLabel}</span>
+                <span class="meta-item" style="font-size:0.75rem;">${catLabel}</span>
+            </div>
+            ${!completo ? `<p class="faltam-label"><i class="fas fa-shopping-cart"></i> Falta: ${faltantes.join(', ')}</p>` : ''}
+            <div class="recipe-prep">
+                <p class="prep-section-title">Ingredientes:</p>
+                <ul class="ing-check-list">
+                    ${r.ingredientes.map(i => `<li><i class="fas fa-check-circle"></i> ${i}</li>`).join('')}
+                </ul>
+                <p class="prep-section-title">Passo a passo:</p>
+                ${r.passos.map((p, ix) => `
+                    <div class="step-item">
+                        <span class="step-number">${ix + 1}</span>
+                        <span class="step-text">${p}</span>
+                    </div>`).join('')}
+                ${r.dica ? `<div class="dica-box"><i class="fas fa-lightbulb"></i> <b>Dica:</b> ${r.dica}</div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    // ===== LÓGICA DE BUSCA =====
+    function temIngrediente(ingredienteReceita, meusIngs) {
+        const base = normalizarTexto(ingredienteReceita);
+        const baseS = base.endsWith('s') ? base.slice(0, -1) : base;
+        return meusIngs.some(d => d.includes(baseS) || baseS.includes(d) || d.includes(base) || base.includes(d));
+    }
+
+    function buscarReceitas() {
+        const termoBusca = normalizarTexto(buscaNome.value);
+
+        if (!meusIngredientes.length && !termoBusca) {
+            areaResultados.innerHTML = `<div class="empty-msg"><i class="fas fa-carrot"></i>Adicione ingredientes acima para encontrar receitas!</div>`;
+            return;
+        }
+
+        // Mostrar loading
+        loading.style.display = 'block';
+        areaResultados.innerHTML = '';
+
+        setTimeout(() => {
+            loading.style.display = 'none';
+
+            let pool = receitas;
+            if (categoriaAtiva !== 'todos') pool = pool.filter(r => r.categoria === categoriaAtiva);
+
+            const termoBusca = normalizarTexto(buscaNome.value);
+
+            if (termoBusca) {
+                pool = pool.filter(r => {
+                    const nome = normalizarTexto(r.nome);
+
+                    const matchNome = nome.includes(termoBusca);
+
+                    const matchIngrediente = r.ingredientes.some(ing =>
+                        normalizarTexto(ing).includes(termoBusca)
+                    );
+
+                    const categoriasMap = {
+                        cafe: ["cafe", "café", "manha", "manhã"],
+                        almoco: ["almoco", "almoço", "comida"],
+                        lanche: ["lanche", "rapido", "rápido"],
+                        jantar: ["jantar", "noite"],
+                        sobremesa: ["doce", "sobremesa", "sobremesas"]
+                    };
+
+                    const matchCategoria = categoriasMap[r.categoria]?.some(c =>
+                        normalizarTexto(c).includes(termoBusca)
+                    );
+
+                    return matchNome || matchIngrediente || matchCategoria;
+                });
+            }
+
+            const resFiltrados = pool.map(r => {
+                const faltam = r.ingredientes.filter(ing => !temIngrediente(ing, meusIngredientes) && !basicos.includes(normalizarTexto(ing)));
+                return { ...r, faltam };
+            });
+
+            let completas = [];
+            let parciais = [];
+
+            // 🔥 NOVA REGRA: se não tem ingredientes mas tem busca por nome
+            if (!meusIngredientes.length && termoBusca) {
+                completas = resFiltrados; // mostra tudo que bateu na busca
+            } else {
+                completas = resFiltrados.filter(r => r.faltam.length === 0);
+                parciais = resFiltrados.filter(r => {
+                    const temUmPrincipal = r.ingredientes.some(ing => temIngrediente(ing, meusIngredientes));
+                    return r.faltam.length > 0 && r.faltam.length <= 2 && temUmPrincipal;
+                });
+            }
+
+            let h = "";
+            if (completas.length > 0) {
+                h += `<h2 class="section-title"><span style="color:var(--success)">✓</span> Pronto para fazer (${completas.length})</h2>`;
+                completas.forEach(r => h += gerarCard(r, true, []));
+            }
+            if (parciais.length > 0) {
+                h += `<h2 class="section-title"><span style="color:#FFC107">!</span> Falta pouco (${parciais.length})</h2>`;
+                parciais.forEach(r => h += gerarCard(r, false, r.faltam));
+            }
+            areaResultados.innerHTML = h || `<div class="empty-msg"><i class="fas fa-search"></i>Nenhuma receita encontrada com esses ingredientes.<br><small>Tente adicionar mais itens!</small></div>`;
+        }, 600);
+    }
+
+    document.getElementById('btn-buscar').onclick = buscarReceitas;
+
+    // ===== BOTÃO TÔ COM FOME =====
+    document.getElementById('btn-fome').onclick = () => {
+        const pool = categoriaAtiva === 'todos' ? receitas : receitas.filter(r => r.categoria === categoriaAtiva);
+        const r = pool[Math.floor(Math.random() * pool.length)];
+        areaResultados.innerHTML = `<h2 class="section-title">Sugestão Aleatória</h2>` + gerarCard(r, true, []);
+        setTimeout(() => {
+            const card = areaResultados.querySelector('.recipe-card');
+            if (card) card.classList.add('open');
+        }, 100);
+    };
+
+    // ===== LIMPAR =====
+    document.getElementById('btn-limpar').onclick = () => {
+        meusIngredientes = [];
+        renderizarTags();
+        areaResultados.innerHTML = '';
+        buscaNome.value = '';
+    };
+
+    // ===== EVENTOS NOS CARDS (delegação) =====
+    areaResultados.addEventListener('click', (e) => {
+        // Favoritar
+        const favBtn = e.target.closest('.btn-fav');
+        if (favBtn) {
+            e.stopPropagation();
+            const nome = favBtn.dataset.fav;
+            const idx = favoritos.indexOf(nome);
+            if (idx === -1) {
+                favoritos.push(nome);
+                favBtn.classList.add('favoritado');
+                favBtn.innerHTML = '<i class="fas fa-heart"></i>';
+            } else {
+                favoritos.splice(idx, 1);
+                favBtn.classList.remove('favoritado');
+                favBtn.innerHTML = '<i class="far fa-heart"></i>';
+            }
+            localStorage.setItem('favoritos', JSON.stringify(favoritos));
+            return;
+        }
+
+        // Abrir/fechar card
+        const card = e.target.closest('.recipe-card');
+        if (card) card.classList.toggle('open');
+    });
+
+    
+    buscaNome.addEventListener('input', () => {
+        buscarReceitas();
+    });
+
+    buscaNome.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            buscarReceitas();
+        }
+    });
+
+    // ===== INICIALIZAÇÃO =====
+    renderizarTags();
+});
+</script>
+</body>
+</html>
